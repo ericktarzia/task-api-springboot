@@ -38,6 +38,11 @@ public class TaskController {
         return service.patch(id, dto);
     }
 
+    @PatchMapping("/{id}/complete")
+    public TaskResponseDTO complete(@PathVariable Long id) {
+        return service.completeTask(id);
+    }
+
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Long id) {
         service.delete(id);

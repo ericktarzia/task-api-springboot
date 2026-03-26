@@ -10,7 +10,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 
 @Service
 public class TaskService {
@@ -62,6 +61,13 @@ public class TaskService {
         return toDTO(repository.save(task));
     }
 
+
+    public TaskResponseDTO completeTask(Long id) {
+        Task task = repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Task not found"));
+        task.setCompleted(true);
+        return toDTO(repository.save(task));
+    }
 
     public void delete(Long id) {
         Task task = repository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Task not found"));
