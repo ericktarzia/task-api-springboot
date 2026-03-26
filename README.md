@@ -28,7 +28,6 @@ O projeto segue separação em camadas:
 * Atualizar tarefa (PUT)
 * Atualização parcial (PATCH)
 * Deletar tarefa
-* Marcar como concluída
 
 ## 🔄 Paginação
 
