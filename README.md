@@ -38,6 +38,7 @@ exception    → tratamento global de erros (GlobalExceptionHandler)
 
 | Método | Rota | Descrição |
 |---|---|---|
+| `GET` | `/health` | Verifica se a API está online |
 | `GET` | `/tasks` | Lista tarefas com paginação |
 | `GET` | `/tasks/{id}` | Busca tarefa por ID |
 | `POST` | `/tasks` | Cria nova tarefa |
@@ -49,6 +50,15 @@ exception    → tratamento global de erros (GlobalExceptionHandler)
 
 ```
 GET /tasks?page=0&size=10
+```
+
+### Exemplo — Health check
+
+```json
+GET /health
+{
+  "online": true
+}
 ```
 
 ### Exemplo — Criar tarefa
@@ -118,6 +128,12 @@ Relatório disponível em: `target/site/jacoco/index.html`
 
 ```bash
 mvn spring-boot:run
+```
+
+Depois, acesse:
+
+```bash
+curl http://localhost:8080/health
 ```
 
 ---
