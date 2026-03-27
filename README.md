@@ -38,18 +38,43 @@ exception    → tratamento global de erros (GlobalExceptionHandler)
 
 | Método | Rota | Descrição |
 |---|---|---|
-| `GET` | `/health` | Verifica se a API está online |
-| `GET` | `/tasks` | Lista tarefas com paginação |
-| `GET` | `/tasks/{id}` | Busca tarefa por ID |
-| `POST` | `/tasks` | Cria nova tarefa |
-| `PATCH` | `/tasks/{id}` | Atualização parcial (título, descrição, status) |
-| `PATCH` | `/tasks/{id}/complete` | Marca tarefa como concluída |
-| `DELETE` | `/tasks/{id}` | Remove tarefa |
+| `GET` | `/api/health` | Verifica se a API está online |
+| `GET` | `/api/tasks` | Lista tarefas com paginação |
+| `GET` | `/api/tasks/{id}` | Busca tarefa por ID |
+| `POST` | `/api/tasks` | Cria nova tarefa |
+| `PATCH` | `/api/tasks/{id}` | Atualização parcial (título, descrição, status) |
+| `PATCH` | `/api/tasks/{id}/complete` | Marca tarefa como concluída |
+| `DELETE` | `/api/tasks/{id}` | Remove tarefa |
+
+### Contrato padrão de resposta
+
+Todos os endpoints da API (exceto rotas de infraestrutura como Swagger/Actuator) retornam o mesmo envelope JSON:
+
+```json
+{
+  "success": true,
+  "message": "Operação realizada com sucesso.",
+  "data": {},
+  "timestamp": "2026-03-27T14:52:41.533"
+}
+```
+
+- `success`: `true` para sucesso, `false` para erro
+- `message`: mensagem padronizada da operação
+- `data`: payload de negócio (ou `null` quando não houver conteúdo)
+- `timestamp`: data/hora da resposta
+
+### Por que o BaseResponse e importante?
+
+- Padroniza sucesso e erro no mesmo formato, facilitando consumo no front-end
+- Reduz duplicacao de logica nos controllers com o `ApiResponseBodyAdvice`
+- Simplifica observabilidade e debug, pois toda resposta inclui `timestamp` e `message`
+- Facilita evolucao da API sem quebrar o contrato principal da resposta
 
 ### Paginação
 
 ```
-GET /tasks?page=0&size=10
+GET /api/tasks?page=0&size=10
 ```
 
 ### Exemplo — Health check
@@ -57,24 +82,41 @@ GET /tasks?page=0&size=10
 ```json
 GET /health
 {
-  "online": true
+  "success": true,
+  "message": "Operação realizada com sucesso.",
+  "data": {
+    "online": true
+  },
+  "timestamp": "2026-03-27T14:52:41.533"
 }
 ```
 
 ### Exemplo — Criar tarefa
 
 ```json
-POST /tasks
+POST /api/tasks
 {
   "title": "Estudar Spring Boot",
   "description": "Revisar documentação oficial"
+}
+
+{
+  "success": true,
+  "message": "Operação realizada com sucesso.",
+  "data": {
+    "id": 1,
+    "title": "Estudar Spring Boot",
+    "description": "Revisar documentação oficial",
+    "completed": false
+  },
+  "timestamp": "2026-03-27T14:52:41.533"
 }
 ```
 
 ### Exemplo — Atualização parcial
 
 ```json
-PATCH /tasks/1
+PATCH /api/tasks/1
 {
   "title": "Novo título",
   "completed": true
@@ -87,6 +129,17 @@ PATCH /tasks/1
 |---|---|
 | `400` | Payload inválido (ex: `title` em branco) |
 | `404` | Tarefa não encontrada |
+
+Exemplo (`404`):
+
+```json
+{
+  "success": false,
+  "message": "Task not found",
+  "data": null,
+  "timestamp": "2026-03-27T14:52:41.533"
+}
+```
 
 ---
 
@@ -133,7 +186,7 @@ mvn spring-boot:run
 Depois, acesse:
 
 ```bash
-curl http://localhost:8080/health
+curl http://localhost:8080/api/health
 ```
 
 ---
@@ -141,7 +194,7 @@ curl http://localhost:8080/health
 ## 📖 Documentação (Swagger)
 
 ```
-http://localhost:8080/swagger-ui/index.html
+http://localhost:8080/api/docs
 ```
 
 ---
@@ -150,7 +203,7 @@ http://localhost:8080/swagger-ui/index.html
 
 - Banco H2 em memória — dados não persistem após reiniciar
 - Validação de entrada com `@Valid` e `@NotBlank`
-- Erros retornam corpo padronizado com `message`, `status` e `timestamp`
+- Respostas seguem envelope padrão com `success`, `message`, `data` e `timestamp`
 
 ---
 

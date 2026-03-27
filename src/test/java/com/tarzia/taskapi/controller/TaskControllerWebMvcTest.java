@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tarzia.taskapi.dto.TaskRequestDTO;
 import com.tarzia.taskapi.dto.TaskResponseDTO;
 import com.tarzia.taskapi.dto.TaskUpdateDTO;
+import com.tarzia.taskapi.advice.ApiResponseBodyAdvice;
 import com.tarzia.taskapi.exception.GlobalExceptionHandler;
 import com.tarzia.taskapi.exception.ResourceNotFoundException;
 import com.tarzia.taskapi.service.TaskService;
@@ -30,7 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(TaskController.class)
-@Import(GlobalExceptionHandler.class)
+@Import({GlobalExceptionHandler.class, ApiResponseBodyAdvice.class})
 class TaskControllerWebMvcTest {
 
     @Autowired
@@ -55,8 +56,9 @@ class TaskControllerWebMvcTest {
 
         mockMvc.perform(get("/tasks"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content[0].id").value(1))
-                .andExpect(jsonPath("$.content[0].title").value("Tarefa"));
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.content[0].id").value(1))
+                .andExpect(jsonPath("$.data.content[0].title").value("Tarefa"));
     }
 
     @Test
@@ -72,8 +74,9 @@ class TaskControllerWebMvcTest {
 
         mockMvc.perform(get("/tasks/{id}", 1L))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1))
-                .andExpect(jsonPath("$.title").value("Tarefa"));
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.id").value(1))
+                .andExpect(jsonPath("$.data.title").value("Tarefa"));
     }
 
     @Test
@@ -82,7 +85,7 @@ class TaskControllerWebMvcTest {
 
         mockMvc.perform(get("/tasks/{id}", 99L))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.message").value("Task not found"))
                 .andExpect(jsonPath("$.timestamp").exists());
     }
@@ -106,8 +109,9 @@ class TaskControllerWebMvcTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1))
-                .andExpect(jsonPath("$.title").value("Nova tarefa"));
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.id").value(1))
+                .andExpect(jsonPath("$.data.title").value("Nova tarefa"));
     }
 
     @Test
@@ -120,7 +124,7 @@ class TaskControllerWebMvcTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.message").value("title: must not be blank"))
                 .andExpect(jsonPath("$.timestamp").exists());
     }
@@ -143,13 +147,16 @@ class TaskControllerWebMvcTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(update)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.completed").value(true));
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.completed").value(true));
     }
 
     @Test
     void shouldDeleteTask() throws Exception {
         mockMvc.perform(delete("/tasks/{id}", 1L))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.timestamp").exists());
 
         verify(service).delete(1L);
     }
@@ -160,7 +167,7 @@ class TaskControllerWebMvcTest {
 
         mockMvc.perform(delete("/tasks/{id}", 99L))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.message").value("Task not found"));
     }
 
@@ -177,8 +184,9 @@ class TaskControllerWebMvcTest {
 
         mockMvc.perform(patch("/tasks/{id}/complete", 1L))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1))
-                .andExpect(jsonPath("$.completed").value(true));
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.id").value(1))
+                .andExpect(jsonPath("$.data.completed").value(true));
     }
 
     @Test
@@ -187,7 +195,7 @@ class TaskControllerWebMvcTest {
 
         mockMvc.perform(patch("/tasks/{id}/complete", 99L))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.message").value("Task not found"));
     }
 }

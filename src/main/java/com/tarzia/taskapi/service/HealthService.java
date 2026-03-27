@@ -6,8 +6,9 @@ import org.springframework.stereotype.Service;
 @Service
 public class HealthService {
     public HealthResponseDTO checkHealth() {
-        return  HealthResponseDTO.builder()
+        return HealthResponseDTO.builder()
                 .isOnline(true)
                 .build();
+
     }
 }

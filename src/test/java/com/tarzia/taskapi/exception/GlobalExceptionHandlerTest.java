@@ -1,6 +1,7 @@
 package com.tarzia.taskapi.exception;
 
 import com.tarzia.taskapi.dto.TaskRequestDTO;
+import com.tarzia.taskapi.dto.common.BaseResponse;
 import jakarta.validation.Valid;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.MethodParameter;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import java.lang.reflect.Method;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class GlobalExceptionHandlerTest {
@@ -20,14 +22,14 @@ class GlobalExceptionHandlerTest {
 
     @Test
     void shouldHandleResourceNotFoundException() {
-        ResponseEntity<ErrorResponse> response = handler.handleResourceNotFoundException(
+        ResponseEntity<BaseResponse<Void>> response = handler.handleResourceNotFoundException(
                 new ResourceNotFoundException("Task not found")
         );
 
         assertEquals(404, response.getStatusCode().value());
         assertNotNull(response.getBody());
+        assertFalse(response.getBody().isSuccess());
         assertEquals("Task not found", response.getBody().getMessage());
-        assertEquals(404, response.getBody().getStatus());
         assertNotNull(response.getBody().getTimestamp());
     }
 
@@ -41,12 +43,12 @@ class GlobalExceptionHandlerTest {
         MethodParameter parameter = new MethodParameter(method, 0);
         MethodArgumentNotValidException exception = new MethodArgumentNotValidException(parameter, bindingResult);
 
-        ResponseEntity<ErrorResponse> response = handler.handleValidationException(exception);
+        ResponseEntity<BaseResponse<Void>> response = handler.handleValidationException(exception);
 
         assertEquals(400, response.getStatusCode().value());
         assertNotNull(response.getBody());
+        assertFalse(response.getBody().isSuccess());
         assertEquals("title: must not be blank", response.getBody().getMessage());
-        assertEquals(400, response.getBody().getStatus());
         assertNotNull(response.getBody().getTimestamp());
     }
 
